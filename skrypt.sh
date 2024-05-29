@@ -1,51 +1,99 @@
-#!/bin/bash
+#!/bin/bash 
 
-case "$1" in
-  --date | -d)
-    echo "Today's date: $(date)"
-    ;;
-  --logs | -l)
-    if [ -z "$2" ]; then
-      num_files=100
-    else
-      num_files=$2
-    fi
-    for ((i=1; i<=num_files; i++))
-    do
-      filename="log${i}.txt"
-      echo "Filename: ${filename}" > $filename
-      echo "Script name: script.sh" >> $filename
-      echo "Date: $(date)" >> $filename
+# Function that displays today's date
+show_date() {
+    echo "Date is: $(date)"
+}
+
+# Function that clears log files
+clear_logs() {
+    rm -f log*.txt
+    echo "All logs were deleted"
+}
+clear_error() {
+	rm -f -r error* 
+	echo "All error dirs deleted."
+}
+# Function that creates error files
+create_errors() {
+    local count=${1:-100}
+    for ((i=1; i<=count; i++)); do
+        mkdir -p "error${i}"
+        filename="error${i}/error${i}.txt"
+        echo "Filename: $filename" > "$filename"
+        echo "Script: $0" >> "$filename"
+        echo "Date: $(date)" >> "$filename"
     done
-    ;;
-  --help | -h)
-    echo "Available options:"
-    echo "--date, -d     Displays today's date"
-    echo "--logs [n], -l [n] Creates n logx.txt files (100 by default)"
-    echo "--init       Clones the repository and adds the path to PATH"
-    echo "--error [n], -e [n] Creates n errorx/errorx.txt files (100 by default)"
-    echo "--help, -h     Displays help"
-    ;;
-  --init)
-    git clone https://github.com/Zhhannna/Lab-4.git $(pwd)
-    export PATH=$PATH:$(pwd)
-    ;;
-  --error | -e)
-    if [ -z "$2" ]; then
-      num_files=100
-    else
-      num_files=$2
-    fi
-    for ((i=1; i<=num_files; i++))
-    do
-      mkdir -p "error${i}"
-      filename="error${i}/error${i}.txt"
-      echo "Filename: ${filename}" > $filename
-      echo "Script name: script.sh" >> $filename
-      echo "Date: $(date)" >> $filename
+    echo "$count error files were created"
+}
+
+# Function that creates log files
+create_logs() { 
+    local count=${1:-100}
+    for ((i=1; i<=count; i++)); do
+        filename="log${i}.txt"
+        echo "Filename: $filename" > "$filename"
+        echo "Script: $0" >> "$filename"
+        echo "Date: $(date)" >> "$filename"
     done
-    ;;
-  *)
-    echo "Unknown option. Use --help to display available options."
-    ;;
-esac
+    echo "$count log files were created"
+}
+
+# Function that clones repository and sets PATH
+init_repo() {
+    git clone https://github.com/relet06/lab4_narzendzia_it
+    export PATH=$PATH:$(pwd)/lab4_narzendia_it
+    echo "Repository cloned and PATH set to $(pwd)/lab4_narzendzia_it"
+}
+
+# Function to display help message
+show_help() {
+    echo "Usage: script.sh [OPTIONS]"
+    echo "Options:" 
+    echo "--date -d       Display today's date"
+    echo "--logs -l [N]   Create N log files, default=100"
+    echo "--help -h       Display this message"
+    echo "--clear -c [-e, Clear all created files. Default clear all logs. 
+                      -a]		OPTION -e clear all error dirs. OPTION -a to delete all created by skrypt files"
+    echo "--init          Clone repository and set PATH"
+    echo "--error -e [N]  Create N error files, default=100"
+} 
+
+# Main logic
+case "$1" in 
+    --date|-d)
+        show_date
+        ;;
+    --logs|-l)
+        if [ -n "$2" ]; then 
+            create_logs "$2"
+        else
+            create_logs
+        fi
+        ;;
+    --help|-h)
+        show_help
+        ;;
+    --clear|-c)
+        if [ "$2" = "-e" ]; then
+		clear_error
+	elif [ "$2" = "-a" ]; then
+		clear_logs 
+		clear_error	
+	else
+		clear_logs
+	fi
+        ;;
+    --init)
+        init_repo
+        ;;
+    --error|-e)
+        if [ -n "$2" ]; then
+            create_errors "$2"
+        else
+            create_errors
+        fi
+        ;;
+    *)
+        echo "Invalid option. Try --help to see available options"
+        ;;
